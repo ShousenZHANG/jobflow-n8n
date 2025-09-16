@@ -1,5 +1,6 @@
 # env and local data
 .env
+.env.example
 /data/
 /outputs/
 
