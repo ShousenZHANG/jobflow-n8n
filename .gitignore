@@ -1,0 +1,19 @@
+# env and local data
+.env
+/data/
+/outputs/
+
+# latex build artifacts
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.pdf
+
+# system
+.DS_Store
+Thumbs.db
+
+# node
+node_modules/

@@ -1,0 +1,16 @@
+keywords:
+  - software engineer
+  - backend
+locations:
+  - Sydney, NSW
+  - Remote
+sources:
+  - apify_linkedin
+  - apify_indeed
+filters:
+  visa: optional
+  seniority: ["Junior", "Mid", "Senior"]
+  remote_only: false
+  min_salary: 0
+limits:
+  per_source: 30

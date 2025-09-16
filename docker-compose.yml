@@ -1,0 +1,29 @@
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    ports:
+      - "5678:5678"
+    env_file:
+      - .env
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n:/data
+    restart: unless-stopped
+
+  texlive:
+    image: texlive/texlive:latest
+    container_name: texlive
+    volumes:
+      - ./:/workspace
+    working_dir: /workspace
+    entrypoint: tail -f /dev/null
+    restart: unless-stopped
+
+volumes:
+  n8n_data:
+    name: n8n_data
+
+networks:
+  default:
+    name: jobflow
