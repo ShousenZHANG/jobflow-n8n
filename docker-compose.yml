@@ -1,3 +1,5 @@
+version: '3.8'
+
 volumes:
   db_storage:
     name: n8n_db_storage
@@ -55,6 +57,30 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      fetcher:
+        condition: service_started
+
+  fetcher:
+    build: ./services/fetcher
+    container_name: job-fetcher
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - TZ=${TZ:-Australia/Sydney}
+      - HOURS_OLD=${HOURS_OLD:-48}
+      - RESULTS_WANTED=${RESULTS_WANTED:-120}
+      - LINKEDIN_LOCATION=${LINKEDIN_LOCATION:-Sydney, New South Wales, Australia}
+      - TITLE_INCLUDE_FROM_QUERIES=${TITLE_INCLUDE_FROM_QUERIES:-1}
+      - FILTER_DESCRIPTION=${FILTER_DESCRIPTION:-1}
+      - SHEET_ID=${SHEET_ID:-}
+      - WORKSHEET=${WORKSHEET:-jobflow}
+      - GOOGLE_CREDS_PATH=/app/credentials/credentials.json
+    volumes:
+      - ./credentials.json:/app/credentials/credentials.json:ro
+      - ./services/fetcher/history:/app/history
+    ports:
+      - "8000:8000"
 
   texlive:
     image: texlive/texlive:latest

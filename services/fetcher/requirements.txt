@@ -1,0 +1,7 @@
+python-jobspy
+pandas
+fastapi
+uvicorn
+gspread
+google-auth
+xlsxwriter

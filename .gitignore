@@ -1,8 +1,11 @@
 # env and local data
 .env
 .env.example
+services/fetcher/history
+venv
 /data/
 /outputs/
+credentials.json
 
 # latex build artifacts
 *.aux
