@@ -1,7 +1,10 @@
 from fastapi import FastAPI, Query, Body
 from pydantic import BaseModel
 from typing import List, Optional
-from fetch_jobs import fetch_all, load_queries
+from fetch_jobs import fetch_all
+import os
+# import resolved creds path from fetch_jobs
+from fetch_jobs import GOOGLE_CREDS as RESOLVED_GOOGLE_CREDS
 
 app = FastAPI(title="JobFetcher Service")
 
@@ -19,6 +22,27 @@ class FetchOptions(BaseModel):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+@app.get("/debug/env")
+def debug_env():
+    sheet_id = os.getenv("SHEET_ID", "")
+    worksheet = os.getenv("WORKSHEET", "")
+    creds = os.getenv("GOOGLE_CREDS_PATH", "")
+    exists = os.path.isfile(creds) if creds else False
+    resolved = RESOLVED_GOOGLE_CREDS
+    resolved_exists = os.path.isfile(resolved) if resolved else False
+    # mask sheet id for display safety
+    def mask(s: str):
+        return s if not s else (s[:4] + "***" + s[-4:] if len(s) > 8 else "***")
+    return {
+        "SHEET_ID": mask(sheet_id),
+        "WORKSHEET": worksheet,
+        "GOOGLE_CREDS_PATH": creds,
+        "creds_exists": exists,
+        "resolved_creds_path": resolved,
+        "resolved_creds_exists": resolved_exists,
+        "cwd": os.getcwd(),
+    }
 
 @app.get("/fetch")
 def fetch_get(

@@ -3,11 +3,13 @@ from typing import Dict, Any, List
 import pandas as pd
 from jobspy import scrape_jobs
 from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
+from pathlib import Path
 
 # Optional: load .env if python-dotenv is installed (non-fatal if missing)
 try:  # lightweight best-effort
-    from dotenv import load_dotenv  # type: ignore
-    load_dotenv()
+    from dotenv import load_dotenv, find_dotenv  # type: ignore
+    # Search upwards to find repo-root .env regardless of CWD
+    load_dotenv(find_dotenv(usecwd=True), override=False)
 except Exception:
     pass
 
@@ -22,7 +24,31 @@ LINKEDIN_LOCATION= os.getenv("LINKEDIN_LOCATION", "Sydney, New South Wales, Aust
 
 SHEET_ID         = os.getenv("SHEET_ID", "")
 WORKSHEET        = os.getenv("WORKSHEET", "jobflow")
-GOOGLE_CREDS     = os.getenv("GOOGLE_CREDS_PATH", "./credentials.json")
+GOOGLE_CREDS     = os.getenv("GOOGLE_CREDS_PATH", "")
+
+# Resolve GOOGLE_CREDS with sensible fallbacks (service dir, repo root, cwd)
+def _resolve_creds_path(path_str: str) -> str:
+    candidates: List[Path] = []
+    if path_str:
+        candidates.append(Path(path_str).expanduser())
+    # service dir
+    candidates.append(Path(__file__).with_name("credentials.json"))
+    # repo root (../../credentials.json)
+    try:
+        candidates.append(Path(__file__).resolve().parents[2] / "credentials.json")
+    except Exception:
+        pass
+    # current working directory
+    candidates.append(Path.cwd() / "credentials.json")
+    for p in candidates:
+        try:
+            if p.is_file():
+                return str(p)
+        except Exception:
+            continue
+    return path_str or ""
+
+GOOGLE_CREDS = _resolve_creds_path(GOOGLE_CREDS)
 
 SEEN_PATH        = os.getenv("SEEN_PATH", "./history/seen.json")
 
@@ -41,7 +67,33 @@ DEFAULT_QUERIES = [
     '"devops developer"',
     '"it support"',
     '"full stack developer"',
-    '"full stack engineer"'
+    '"full stack engineer"',
+    '"backend developer"',
+    '"backend engineer"',
+    '"junior java developer"',
+    '"graduate software engineer"',
+    '"graduate software developer"',
+    '"entry level software engineer"',
+    '"entry level software developer"',
+    '"junior full stack developer"',
+    '"junior full stack engineer"',
+    '"junior backend developer"',
+    '"junior backend engineer"',
+    '"java intern"',
+    '"software intern"',
+    '"software engineering intern"',
+    '"software developer intern"',
+    '"web developer"',
+    '"web engineer"',
+    '"junior web developer"',
+    '"junior web engineer"',
+    '"mid level software engineer"',
+    '"mid level software developer"',
+    '"mid level java developer"',
+    '"mid level full stack developer"',
+    '"mid level full stack engineer"',
+    '"mid level backend developer"',
+    '"mid level backend engineer"'
 ]
 
 REQUIRED_BASE = ["id","site","job_url","title","company","location","job_type","job_level","description"]
@@ -224,15 +276,23 @@ def save_seen(path: str, seen: set):
         json.dump(sorted(seen), f, ensure_ascii=False, indent=2)
 
 def append_sheet(df: pd.DataFrame, sheet_id: str, worksheet: str, creds_path: str):
-    if not sheet_id or not os.path.isfile(creds_path) or df.empty:
-        return "skip"
+    # Make skip reasons explicit for easier diagnostics
+    if not sheet_id:
+        logger.warning("append_sheet skipped: SHEET_ID is empty")
+        return "skip_no_sheet_id"
+    if not os.path.isfile(creds_path):
+        logger.warning("append_sheet skipped: GOOGLE_CREDS_PATH not found at %s", creds_path)
+        return "skip_no_creds"
+    if df.empty:
+        logger.info("append_sheet skipped: dataframe empty (no new rows)")
+        return "skip_empty"
     import gspread
     gc = gspread.service_account(filename=creds_path)
     sh = gc.open_by_key(sheet_id)
     try:
         ws = sh.worksheet(worksheet)
     except gspread.WorksheetNotFound:
-        ws = sh.add_worksheet(title=worksheet, rows="2000", cols="30")
+        ws = sh.add_worksheet(title=worksheet, rows=2000, cols=30)
     vals = ws.get_all_values()
     header = vals[0] if vals else []
     needed = ["job_url","title","company","location","job_type","job_level","applied","status"]
@@ -259,6 +319,7 @@ def append_sheet(df: pd.DataFrame, sheet_id: str, worksheet: str, creds_path: st
     out["__key__"] = out["job_url"].map(normalize_url)
     new_df = out[~out["__key__"].isin(existing_urls)]
     if new_df.empty:
+        logger.info("append_sheet dedupe: no new rows after comparing job_url")
         return "no_new"
     rows = new_df.drop(columns=["__key__"]).values.tolist()
     ws.append_rows(rows, value_input_option="USER_ENTERED")

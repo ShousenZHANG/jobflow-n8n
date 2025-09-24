@@ -5,3 +5,5 @@ uvicorn
 gspread
 google-auth
 xlsxwriter
+jinja2
+python-dotenv
