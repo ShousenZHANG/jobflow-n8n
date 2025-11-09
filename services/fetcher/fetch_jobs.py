@@ -63,9 +63,6 @@ DEFAULT_QUERIES = [
     '"software engineer"',
     '"software developer"',
     '"java developer"',
-    '"devops engineer"',
-    '"devops developer"',
-    '"it support"',
     '"full stack developer"',
     '"full stack engineer"',
     '"backend developer"',
@@ -106,8 +103,21 @@ TITLE_EXCLUDE_PAT = re.compile(
 )
 # Description exclusion patterns
 EXCLUDE_EXP_YEARS_RE = re.compile(
-    r'(?i)\b(?:[5-9]|1\d|2\d|3\d)\s*(?:\+|-\s*\d+)?\s*(?:years?|yrs?)\s*(?:of\s+)?(?:experience|exp)\b'
+    r'''(?ix)                               
+    (?:\b|[^a-z])                            
+    (?:                                    
+        (?:[5-9]|[1-9]\d)                     
+        (?:\s*[\+\-–—]\s*\d+)?              
+    )
+    \s*                                      
+    (?:years?|yrs?|y[.]?)                    
+    (?:\s*(?:of|in))?                         
+    (?:\s+\w{0,3}){0,2}?                       
+    \s*(?:experience|exp|work\s+experience)\b 
+    ''',
+    re.UNICODE
 )
+
 EXCLUDE_RIGHTS_RE = re.compile(
     r'(?i)\b(?:'
     r'permanent\s+resident|permanent\s+residency|PR\s*(?:only|required)?|'
