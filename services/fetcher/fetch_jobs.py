@@ -57,56 +57,14 @@ TITLE_INCLUDE_FROM_QUERIES = os.getenv("TITLE_INCLUDE_FROM_QUERIES", "0").lower(
 # Control whether to apply description exclusion filters
 FILTER_DESCRIPTION_DEFAULT = os.getenv("FILTER_DESCRIPTION", "1").lower() in {"1","true","yes","on"}
 
-# Default queries used if none are provided externally
-DEFAULT_QUERIES = [
-    '"junior software engineer"',
-    '"software engineer"',
-    '"software developer"',
-    '"java developer"',
-    '"full stack developer"',
-    '"full stack engineer"',
-    '"backend developer"',
-    '"backend engineer"',
-    '"junior java developer"',
-    '"graduate software engineer"',
-    '"graduate software developer"',
-    '"entry level software engineer"',
-    '"entry level software developer"',
-    '"junior full stack developer"',
-    '"junior full stack engineer"',
-    '"junior backend developer"',
-    '"junior backend engineer"',
-    '"java intern"',
-    '"software intern"',
-    '"software engineering intern"',
-    '"software developer intern"',
-    '"web developer"',
-    '"web engineer"',
-    '"junior web developer"',
-    '"junior web engineer"',
-    '"mid level software engineer"',
-    '"mid level software developer"',
-    '"mid level java developer"',
-    '"mid level full stack developer"',
-    '"mid level full stack engineer"',
-    '"mid level backend developer"',
-    '"mid level backend engineer"'
-]
-
 REQUIRED_BASE = ["id","site","job_url","title","company","location","job_type","job_level","description"]
 
-# Title filtering patterns (exclude)
-TITLE_EXCLUDE_PAT = re.compile(
-    r'(?i)\b('
-    r'senior|sr\.?|lead|principal|architect|manager|head|director'
-    r')\b'
-)
 # Description exclusion patterns
 EXCLUDE_EXP_YEARS_RE = re.compile(
     r'''(?ix)                               
     (?:\b|[^a-z])                            
     (?:                                    
-        (?:[5-9]|[1-9]\d)                     
+        (?:[4-9]|[1-9]\d)                     
         (?:\s*[\+\-–—]\s*\d+)?              
     )
     \s*                                      
@@ -116,6 +74,40 @@ EXCLUDE_EXP_YEARS_RE = re.compile(
     \s*(?:experience|exp|work\s+experience)\b 
     ''',
     re.UNICODE
+)
+
+DEFAULT_QUERIES = [
+    # --- Core software roles ---
+    '"junior software engineer"', '"software engineer"', '"software developer"', '"java developer"',
+    '"full stack developer"', '"full stack engineer"', '"backend developer"', '"backend engineer"',
+    '"frontend developer"', '"frontend engineer"', '"web developer"', '"web engineer"',
+
+    # --- Junior / Graduate / Entry-level ---
+    '"junior java developer"', '"graduate software engineer"', '"graduate software developer"',
+    '"graduate developer"', '"entry level software engineer"', '"entry level software developer"',
+    '"junior full stack developer"', '"junior full stack engineer"',
+    '"junior backend developer"', '"junior backend engineer"',
+
+    # --- Internship roles ---
+    '"software intern"', '"software engineering intern"', '"developer intern"',
+    '"software internship"', '"engineering internship"', '"developer internship"',
+
+    # --- Part-time / Contract roles ---
+    '"part time software developer"', '"part time software engineer"',
+    '"part-time developer"', '"part-time engineer"', '"contract software developer"', '"contract engineer"',
+
+    # --- Mid-level (retain for completeness, still filtered by years) ---
+    '"mid level software engineer"', '"mid level software developer"', '"mid level java developer"',
+    '"mid level full stack developer"', '"mid level full stack engineer"',
+    '"mid level backend developer"', '"mid level backend engineer"',
+
+    # --- Broad fallback ---
+    '"software developer role"'
+]
+
+# ---------------------- Patterns ---------------------
+TITLE_EXCLUDE_PAT = re.compile(
+    r'(?i)\b(?:senior|sr\.?|lead|principal|architect|manager|head|director|staff)\b'
 )
 
 EXCLUDE_RIGHTS_RE = re.compile(
